@@ -63,7 +63,7 @@ export function Nodes(app, breadCrumb, modal, initialState) {
 
         // 현재 디렉토리가 root가 아니면 이전 버튼 표시
         if (this.state.depth[this.state.depth.length - 1] !== 'root') {
-            this.prevBtn.innerHTML = `<img class="back" src="./assets/prev.png"/>`;
+            this.prevBtn.innerHTML = `<img class="back" src="./assets/prev.png" alt="back"/>`;
             this.target.appendChild(this.prevBtn);
         }
     }
@@ -73,7 +73,7 @@ export function Nodes(app, breadCrumb, modal, initialState) {
         this.renderPrevBtn();
         this.target.innerHTML += `${this.state.nodes.map((node, index) => {
             return `<div class="Node" data-path=${node.filePath ? node.filePath : '#'} data-id=${node.id}>
-                    <img src=${node.type === 'DIRECTORY' ? `${CURRENT_URL}/assets/directory.png` : `${CURRENT_URL}/assets/file.png`}>
+                    <img src=${node.type === 'DIRECTORY' ? `${CURRENT_URL}/assets/directory.png` : `${CURRENT_URL}/assets/file.png`} alt="node">
                 <div>${node.name}</div></div>`;
         }).join('')
         }`
@@ -149,7 +149,7 @@ export function ImageView(url = '') {
     // ImageView 렌더링 함수
     this.render = () => {
         this.target.className = this.className;
-        this.target.innerHTML = `<div class="content"><img src=${this.url}></div>`;
+        this.target.innerHTML = `<div class="content"><img src=${this.url} alt="image"></div>`;
         this.setCloseEventListener(); // 모달 렌더링 후 클릭 이벤트 등록
     }
 
