@@ -27,10 +27,8 @@ export function Breadcrumb(app, initialState) {
 
     // Breadcrumb 렌더링 함수
     this.render = () => {
-        this.target.innerHTML = `${
-            this.state.map((node, index) =>
-                `<div class='nav-item' data-index=${index}>${index > 0 ? `<span> - <span>${node}` : node}</div>`).join('')
-        }`
+        this.target.innerHTML = this.state.map((node, index) =>
+            `<div class='nav-item' data-index=${index}>${index > 0 ? `<span> - </span>${node}` : node}</div>`).join('');
     }
     this.render();
 }
@@ -71,12 +69,11 @@ export function Nodes(app, breadCrumb, modal, initialState) {
     // Nodes 렌더링 함수
     this.render = () => {
         this.renderPrevBtn();
-        this.target.innerHTML += `${this.state.nodes.map((node, index) => {
-            return `<div class="Node" data-path=${node.filePath ? node.filePath : '#'} data-id=${node.id}>
-                    <img src=${node.type === 'DIRECTORY' ? `${CURRENT_URL}/assets/directory.png` : `${CURRENT_URL}/assets/file.png`} alt="node">
-                <div>${node.name}</div></div>`;
-        }).join('')
-        }`
+        this.target.innerHTML += this.state.nodes.map((node) =>
+            `<div class="Node" data-path=${node.filePath ? node.filePath : '#'} data-id=${node.id}>
+                <img src=${node.type === 'DIRECTORY' ? `${CURRENT_URL}/assets/directory.png` : `${CURRENT_URL}/assets/file.png`} alt=${node.name}>
+                <div>${node.name}</div>
+            </div>`).join('');
     }
 
     // 이전 상태로 돌아가는 함수
@@ -90,13 +87,16 @@ export function Nodes(app, breadCrumb, modal, initialState) {
 
     // 클릭 이벤트 핸들러
     this.target.addEventListener('click', async (e) => {
-        const filePath = e.target.parentNode.dataset.path;
+        const parentNode = e.target.closest('.Node');
+        if (!parentNode) return; // 클릭된 요소의 부모 노드를 찾지 못하면 함수 종료
+
+        const filePath = parentNode.dataset.path;
+        const id = parentNode.dataset.id;
 
         if (filePath === '#') { // 디렉토리 클릭 시
             stack.push({ ...this.state }); // 현재 상태를 스택에 푸시
 
-            const id = e.target.parentNode.dataset.id;
-            const directoryName = e.target.parentNode.lastChild.innerText;
+            const directoryName = parentNode.querySelector('div').innerText;
             breadCrumb.setState(directoryName); // Breadcrumb 상태 업데이트
 
             this.target.innerHTML = ''; // 노드 초기화
@@ -107,17 +107,15 @@ export function Nodes(app, breadCrumb, modal, initialState) {
             if (!cache) { // 캐시가 없으면
                 states = await renderNodes(this.modal, breadCrumb, id);
                 addCache(id, states);
-                this.setState(states);
             } else {
                 states = cache; // 캐시가 있으면 캐시에서 데이터 가져오기
-                this.setState(states);
             }
+            this.setState(states);
 
         } else if (filePath) { // 파일 클릭 시 이미지 모달 표시
             const imageUrl = `${IMAGE_BASE_URL}${filePath}`;
-            const modalClassName = 'Modal ImageViewer';
-            this.modal.setModal(imageUrl, modalClassName);
-        } else if (e.target.className === 'back') { // 이전 버튼 클릭 시
+            this.modal.setModal(imageUrl, 'Modal ImageViewer');
+        } else if (e.target.classList.contains('back')) { // 이전 버튼 클릭 시
             this.historyBack();
         }
     });
@@ -139,7 +137,7 @@ export function ImageView(url = '') {
 
     // 모달 닫기 이벤트 리스너 설정 함수
     this.setCloseEventListener = () => {
-        document.addEventListener('click', e => {
+        document.addEventListener('click', (e) => {
             if (e.target.className === 'Modal ImageViewer') {
                 this.setModal('', 'hidden');
             }
@@ -149,7 +147,7 @@ export function ImageView(url = '') {
     // ImageView 렌더링 함수
     this.render = () => {
         this.target.className = this.className;
-        this.target.innerHTML = `<div class="content"><img src=${this.url} alt="image"></div>`;
+        this.target.innerHTML = this.url ? `<div class="content"><img src=${this.url} alt="image"></div>` : '';
         this.setCloseEventListener(); // 모달 렌더링 후 클릭 이벤트 등록
     }
 
